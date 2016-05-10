@@ -1,0 +1,16 @@
+#Diretorio do arquivo de configuração, esse arquivo, deixar vazio se caminho for o mesmo onde fica o sistema
+DiretorioDoConfig=
+#Declarar onde fica os arquivos da rotina, deixar vazio se caminho for o mesmo onde fica o sistema
+DiretorioDosArquivos=
+#Diretorio dos arquivos de log, por padrao fica no mesmo diretorio do sistema
+DiretorioDoLog=log
+#Diretorio dos arquivos de log do arquivo bat
+DiretorioDoLogBatch=logBat
+#Nome do arquivo bat sem extensao do dia
+NomeDoBat=versao
+#Extensao do arquivo, .bat ou .batch
+ExtensaoDoBat=.batch
+#Receber log por e-mail 0=Nao, 1=Sim, 
+Avisos=0
+#Conta's de e-mail(no maximo 3) separado por ponto e virgula (;)
+Contas=suporte.ti@prolinkcontabil.com.br
