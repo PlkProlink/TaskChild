@@ -1,0 +1,10 @@
+*Chamar script freefilesync
+*Verificar se FreeFileSync foi aberto
+*Verificar se FreeFileSync se foi encerrado
+*Se fechou vai chamar script do WINRAR para a pasta e mover para um local
+*Verificar se WINRAR foi encerrado
+*Criar novo diretorio com o nome da versao
+*Lista arquivos de log - trata e copia para diretorio de log
+*--Salva no banco--Duas tabelas - STATUS - HISTORICO
+*Enviar log por email
+*Enviar log da tela por e-mail - usar booleano status

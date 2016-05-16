@@ -1,16 +1,39 @@
-#Diretorio do arquivo de configuração, esse arquivo, deixar vazio se caminho for o mesmo onde fica o sistema
-DiretorioDoConfig=
-#Declarar onde fica os arquivos da rotina, deixar vazio se caminho for o mesmo onde fica o sistema
-DiretorioDosArquivos=
-#Diretorio dos arquivos de log, por padrao fica no mesmo diretorio do sistema
+#Regras: 
+.Para caminhos use \\ no lugar de \
+.Se for em rede \\\\ no lugar de \\
+.Não precisa informar aspas(") 
+.Para localização dentro do diretorio do sistema deixe em branco
+#
+#Deixar Diretorios em branco se mesma localização do sistema
+#Diretorio pai onde ficarao os arquivo compactados, pastas de anos e meses serao criados automaticamente deixar vazio se caminho for o mesmo onde fica o sistema
+DiretorioDosArquivos=c:\\Arquivos
+#Declarar onde fica o arquivo da rotina do FreeFileSync
+DiretorioDoBatch=
+#Diretorio dos arquivos de log do sistema
 DiretorioDoLog=log
 #Diretorio dos arquivos de log do arquivo bat
-DiretorioDoLogBatch=logBat
+DiretorioDoLogBatch=C:\\log
+#Diretorio das versoes
+DiretorioVersao=C:\\teste
+#Diretorio do Compactador .rar
+DiretorioDoRar=c:
+#Opcao do WinRar deletar(-DF) ou mandar para lixeira (-DR)? -DF ou -DR
+DeleteRar=-DF
+#Caminho do executavel FreeFileSync
+DiretorioDoExecutavel=C:\\Program Files\\FreeFileSync\\FreeFileSync.exe
 #Nome do arquivo bat sem extensao do dia
 NomeDoBat=versao
 #Extensao do arquivo, .bat ou .batch
-ExtensaoDoBat=.batch
+ExtensaoDoBat=.ffs_batch
+#Tempo de espera do backup em minutos
+TempoExecucao=2400
+#Habilitar copia automatica dos arquivos .rar 0=Não 1=Sim para diretorio
+HabilitarCopia=0
+#Copia automatica dos arquivos de versao .rar do mes anterior todo dia ?
+DiaCopia=1
+#Diretorio destino para copia dos arquivos .rar
+DiretorioDestinoVersaoRar=C:\\Backup
 #Receber log por e-mail 0=Nao, 1=Sim, 
-Avisos=0
+Avisos=1
 #Conta's de e-mail(no maximo 3) separado por ponto e virgula (;)
-Contas=suporte.ti@prolinkcontabil.com.br
+Contas=tiago.dias@prolinkcontabil.com.br
