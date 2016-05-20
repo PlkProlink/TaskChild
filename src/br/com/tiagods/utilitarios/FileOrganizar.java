@@ -5,8 +5,14 @@
 package br.com.tiagods.utilitarios;
 
 import br.com.tiagods.model.Model;
+import br.com.tiagods.model.ModelDiretorios;
 import static br.com.tiagods.view.Menu.jTextArea1;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 
 /**
@@ -14,19 +20,22 @@ import java.text.SimpleDateFormat;
  * @author User
  */
 public class FileOrganizar {
-    String diretorio;
     Model model;
     SimpleDateFormat sdf = new SimpleDateFormat("MMyyyy");
-    
     StringBuilder builder = new StringBuilder();
     
-    public FileOrganizar(Model model, String diretorio){
-        this.diretorio=diretorio;
+    public FileOrganizar(Model model){
         this.model=model;
-        organizar();
     }
     //
-    public void organizar(){
+    public void limparPasta(String diretorio){
+        File file = new File(diretorio);
+        File [] files = file.listFiles();
+        for(File f : files)
+            f.delete();
+    }
+    //
+    public void organizar(String diretorio){
         File file = new File(diretorio);
         if(file.isDirectory()){
             File[] arquivos = file.listFiles();
@@ -35,8 +44,7 @@ public class FileOrganizar {
                 String data = sdf.format(modificao);                
                 if(data.equals(model.getMes()+model.getAno())){
                     System.out.println("movendo arquivo "+f.getAbsoluteFile());
-                    mover(f, model.getMes(),model.getAno());
-                    
+                    mover(f, model.getMes(),String.valueOf(model.getAno()));
                 }
                 else{
                     System.out.println("2 movendo arquivo "+f.getAbsoluteFile());
@@ -45,10 +53,10 @@ public class FileOrganizar {
             }
         }
     }
-    //mover o arquivo para um diretorio organizado
+    //mover o arquivo para um diretorio e organizar
     private void mover(File origem, String mes, String ano){
         File arq = new File(origem.getParentFile()+"\\"+ano);
-        File sub = new File(arq.getAbsolutePath()+"\\"+mes);
+        File sub = new File(arq.getAbsolutePath()+"\\"+model.getMesExtenso(mes));
         
         if(!arq.exists())
             arq.mkdir();
@@ -67,6 +75,37 @@ public class FileOrganizar {
                 atualizarTela("Arquivo enviado para " +novocaminho);
         }
     }
+    //mover Log
+    public boolean moverLog(File fileInicial, File fileFinal){
+        
+        try {
+            Path pathI = Paths.get(fileInicial.getAbsolutePath());
+            Path pathO = Paths.get(fileFinal.getAbsolutePath());
+            Files.copy(pathI, pathO, StandardCopyOption.REPLACE_EXISTING);
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
+    }   
+    //lista os arquivos dentro do diretorio
+    public String listarArquivos(ModelDiretorios dir){
+        StringBuilder sb = new StringBuilder();
+        File[] files2 = new File(dir.getDiretorioDosArquivos()).listFiles();
+        for(File f : files2){
+            if(f.isFile()){
+                sb.append(f.getName()).append(";");
+            }
+        }
+        return sb.toString();
+    }
+    
+    public void criarDiretorios(File dir){
+        if(!dir.exists()){
+            atualizarTela("Criando um novo diretorio para versao em "+dir.getAbsolutePath());
+            dir.mkdir();//criar diretorio de versao caso não exista
+        }
+    }
+    
     private void atualizarTela(String texto){
         //mostrar informacao nao tela
         if(builder.length()>0)

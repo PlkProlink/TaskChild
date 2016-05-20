@@ -20,7 +20,7 @@ import java.util.Properties;
 public class Config {
     File file;
     FileWriter fWriter;
-    String dirConfig ="config.txt";
+    String dirConfig ="config.properties";
     
     public String lerArquivos(ModelBat bat, ModelConta conta, ModelDiretorios diretorios){
         file = new File(dirConfig);
@@ -72,44 +72,43 @@ public class Config {
                 file.createNewFile();
                 fWriter= new FileWriter(dirConfig, true);
                 String str ="#Regras: \n" +
-                ".Para caminhos use \\\\ no lugar de \\\n" +
-                ".Se for em rede \\\\\\\\ no lugar de \\\\\n" +
-                ".Não precisa informar aspas(\") \n" +
-                ".Para localização dentro do diretorio do sistema deixe em branco\n" +
-                "#\n" +
-                "#Deixar Diretorios em branco se mesma localização do sistema\n" +
-                "#Diretorio pai onde ficarao os arquivo compactados, pastas de anos e meses serao criados automaticamente deixar vazio se caminho for o mesmo onde fica o sistema\n" +
-                "DiretorioDosArquivos=c:\\\\Arquivos\n" +
-                "#Declarar onde fica o arquivo da rotina do FreeFileSync\n" +
-                "DiretorioDoBatch=\n" +
-                "#Diretorio dos arquivos de log do sistema\n" +
-                "DiretorioDoLog=log\n" +
-                "#Diretorio dos arquivos de log do arquivo bat\n" +
-                "DiretorioDoLogBatch=C:\\\\LogBatch\n" +
-                "#Diretorio das versoes\n" +
-                "DiretorioVersao=C:\\\\teste\n" +
-                "#Diretorio do Compactador .rar\n" +
-                "DiretorioDoRar=c:\n" +
-                "#Opcao do WinRar deletar(-DF) ou mandar para lixeira (-DR)? -DF ou -DR\n" +
-                "DeleteRar=-DF\n" +
-                "#Caminho do executavel FreeFileSync\n" +
-                "DiretorioDoExecutavel=C:\\\\Program Files\\\\FreeFileSync\\\\FreeFileSync.exe\n" +
-                "#Nome do arquivo bat sem extensao do dia\n" +
-                "NomeDoBat=versao\n" +
-                "#Extensao do arquivo, .bat ou .batch\n" +
-                "ExtensaoDoBat=.ffs_batch\n" +
-                "#Tempo de espera do backup em minutos\n" +
-                "TempoExecucao=2400\n" +
-                "#Habilitar copia automatica dos arquivos .rar 0=Não 1=Sim para diretorio\n" +
-                "HabilitarCopia=0\n" +
-                "#Copia automatica dos arquivos de versao .rar do mes anterior todo dia ?\n" +
-                "DiaCopia=1\n" +
-                "#Diretorio destino para copia dos arquivos .rar\n" +
-                "DiretorioDestinoVersaoRar=C:\\\\Backup\n" +
-                "#Receber log por e-mail 0=Nao, 1=Sim, \n" +
-                "Avisos=1\n" +
-                "#Conta's de e-mail(no maximo 3) separado por ponto e virgula (;)\n" +
-                "Contas=tiago@prolinkcontabil.com.br";
+                            "#.Para caminhos use \\\\ no lugar de \\\n" +
+                            "#.Se for em rede \\\\\\\\ no lugar de \\\\\n" +
+                            "#.Não precisa informar aspas(\") \n" +
+                            "#.Para localização dentro do diretorio do sistema deixe em branco\n" +
+                            "#Deixar Diretorios em branco se mesma localização do sistema\n" +
+                            "#Diretorio pai onde ficarao os arquivo compactados, pastas de anos e meses serao criados automaticamente deixar vazio se caminho for o mesmo onde fica o sistema\n" +
+                            "DiretorioDosArquivos=c:\\\\Arquivos\n" +
+                            "#Declarar onde fica o arquivo da rotina do FreeFileSync\n" +
+                            "DiretorioDoBatch=\n" +
+                            "#Diretorio dos arquivos de log do sistema\n" +
+                            "DiretorioDoLog=log\n" +
+                            "#Diretorio dos arquivos de log do arquivo bat\n" +
+                            "DiretorioDoLogBatch=C:\\\\log\n" +
+                            "#Diretorio das versoes\n" +
+                            "DiretorioVersao=C:\\\\teste\n" +
+                            "#Diretorio do Compactador .rar\n" +
+                            "DiretorioDoRar=C:\\\\Program Files\\\\WinRAR\n" +
+                            "#Opcao do WinRar deletar(-DF) ou mandar para lixeira (-DR)? -DF ou -DR\n" +
+                            "DeleteRar=-DF\n" +
+                            "#Caminho do executavel FreeFileSync\n" +
+                            "DiretorioDoExecutavel=C:\\\\Program Files\\\\FreeFileSync\\\\FreeFileSync.exe\n" +
+                            "#Nome do arquivo bat sem extensao do dia\n" +
+                            "NomeDoBat=versao\n" +
+                            "#Extensao do arquivo, .bat ou .batch\n" +
+                            "ExtensaoDoBat=.ffs_batch\n" +
+                            "#Tempo de espera do backup em minutos\n" +
+                            "TempoExecucao=2400\n" +
+                            "#Habilitar copia automatica dos arquivos .rar 0=Não 1=Sim para diretorio\n" +
+                            "HabilitarCopia=0\n" +
+                            "#Copia automatica dos arquivos de versao .rar do mes anterior todo dia ?\n" +
+                            "DiaCopia=1\n" +
+                            "#Diretorio destino para copia dos arquivos .rar\n" +
+                            "DiretorioDestinoVersaoRar=C:\\\\Backup\n" +
+                            "#Receber log por e-mail 0=Nao, 1=Sim, \n" +
+                            "Avisos=1\n" +
+                            "#Conta's de e-mail(no maximo 3) separado por ponto e virgula (;)\n" +
+                            "Contas=tiago.dias@prolinkcontabil.com.br";
                 fWriter.write(str);
                 fWriter.close();
                 return true;

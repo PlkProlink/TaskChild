@@ -8,14 +8,13 @@ import br.com.tiagods.model.Model;
 import br.com.tiagods.model.ModelBat;
 import br.com.tiagods.model.ModelConta;
 import br.com.tiagods.model.ModelDiretorios;
+import br.com.tiagods.model.ModelLog;
 import br.com.tiagods.utilitarios.BatJob;
 import br.com.tiagods.utilitarios.Config;
 import br.com.tiagods.utilitarios.Email;
 import br.com.tiagods.utilitarios.FileBackup;
 import br.com.tiagods.utilitarios.FileOrganizar;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import br.com.tiagods.utilitarios.FileLog;
 import static br.com.tiagods.view.Menu.*;
 import java.io.File;
 import java.io.FileWriter;
@@ -32,77 +31,12 @@ public class ControllerMenu{
     ModelBat bat = new ModelBat();
     ModelDiretorios dir = new ModelDiretorios();
     ModelConta contas = new ModelConta();
-    Date data = new Date();
-    GregorianCalendar calendario = new GregorianCalendar();
+    
     StringBuilder builder = new StringBuilder();
     String script;
     
     public ControllerMenu(){
-        
-        calendario.setTime(data);
-        pegaDia();
-        pegaMes();
-        pegaAno();
-        Thread();
-    }
-    
-    private void pegaDia(){
-        //*pegando data hoje
-        int diaHoje = calendario.get(Calendar.DAY_OF_MONTH);
-        if(diaHoje>=0 && diaHoje<=9)
-            model.setDia("0"+diaHoje);
-        else
-            model.setDia(""+diaHoje);
-    }
-    
-    private void pegaMes(){
-        int mesAtual = calendario.get(Calendar.MONTH);
-        switch(mesAtual){
-            case 0:
-                mesAtual=1;
-                break;
-            case 1:
-                mesAtual=2;
-                break;
-            case 2:
-                mesAtual=3;
-                break;
-            case 3:
-                mesAtual=4;
-                break;
-            case 4:
-                mesAtual=5;
-                break;
-            case 5:
-                mesAtual=6;
-                break;
-            case 6:
-                mesAtual=7;
-                break;
-            case 7:
-                mesAtual=8;
-                break;
-            case 8:
-                mesAtual=9;
-                break;
-            case 9:
-                mesAtual=10;
-                break;
-            case 10:
-                mesAtual=11;
-                break;
-            case 11:
-                mesAtual=12;
-                break;
-        }
-        if(mesAtual>=0 && mesAtual<=9)
-            model.setMes("0"+mesAtual);
-        else
-            model.setMes(""+mesAtual);
-    }
-        
-    private void pegaAno(){
-        model.setAno(String.valueOf(this.calendario.get(Calendar.YEAR)));
+        Thread();//chamando a thread principal
     }
     private void Thread(){
         Executa ex = new Executa();
@@ -112,105 +46,154 @@ public class ControllerMenu{
     public class Executa implements Runnable{
         @Override
         public void run() {
-            atualizarTela("Verificando data: "+model.getDia()+"/"+model.getMes()+"/"+model.getAno());
-            
             Config config = new Config();
-            String valor = config.lerArquivos(bat, contas, dir);
-            atualizarTela(valor);
-            job = new BatJob(model);
             
-            atualizarTela("Chamando FreeFileSync "+"\""+dir.getDiretorioInstalacao()+"\" \""+dir.getDiretorioDoBatch()+"\\"+bat.getNome()+bat.getExtensao()+"\"");
-            script = "\""+dir.getDiretorioInstalacao()+"\" \""+dir.getDiretorioDoBatch()+"\\"+bat.getNome()+bat.getExtensao()+"\"";
-            ThreadScript();
+            atualizarTela(config.lerArquivos(bat, contas, dir));
             
-            for(int i=0; job.verificarExecucaoImediata("tasklist /FI \"IMAGENAME eq FreeFileSync.exe\"").equals("Fechado"); i++){//verificar se o programa foi aberto
-                try {
-                    if(i==10){
-                        atualizarTela("Não foi identificado a execução do FreeFileSync!Encerrando...");
-                        EnviarEmail();
+                job = new BatJob(model);
+
+                atualizarTela("Chamando FreeFileSync "+"\""+dir.getDiretorioInstalacao()+"\" \""+dir.getDiretorioDoBatch()+"\\"+bat.getNome()+bat.getExtensao()+"\"");
+
+                script = "\""+dir.getDiretorioInstalacao()+"\" \""+dir.getDiretorioDoBatch()+"\\"+bat.getNome()+bat.getExtensao()+"\"";
+                job.executarScript(script, model);
+                if(model.isStatus()==true){
+                    for(int i=0; ; i++){//verificar se o programa foi aberto
+                        try {
+                            if(job.verificarExecucaoImediata("tasklist /FI \"IMAGENAME eq FreeFileSync.exe\"").equals("Aberto")){
+                                model.setStatus(true);
+                                break;
+                            }
+                            else if(i==20){
+                                atualizarTela("Não foi identificado a execução do FreeFileSync!Encerrando...");
+                                script="tasklist /FI \"IMAGENAME eq FreeFileSync.exe\"";
+                                job.executarScript(script, model);
+                                model.setStatus(false);
+                                EnviarEmail();
+                                Thread.interrupted();
+                            }
+                            else
+                                Thread.sleep(10*1000);//30 segundos
+                        } catch (InterruptedException ex) {
+                            atualizarTela("Sistema interrompido(Abertura Script): Detalhes do erro: "+ex);
+                            model.setStatus(false);
+                        }
                     }
-                    else
-                        Thread.sleep(30*1000);//30 segundos
-                } catch (InterruptedException ex) {
-                    atualizarTela("Sistema interrompido(Abertura Script): Detalhes do erro: "+ex);
+                    if(model.isStatus()==true){
+                        atualizarTela("Identificado a execução do FreeFileSync...");
+                        atualizarTela("FreeFileSync identificado...aguardando termino...");
+
+                        for(int i =0; ; i++){//aqui é o contrario, verificarei quando o job ira terminar para tentar proxima etapa
+                            try {
+
+                                if(job.verificarExecucaoImediata("tasklist /FI \"IMAGENAME eq FreeFileSync.exe\"").equals("Fechado")){
+                                    model.setStatus(true);
+                                    break;
+                                }
+                                else if(i==bat.getTempoEspera()){
+                                    atualizarTela("FreeFileSync demorou "+bat.getTempoEspera()+" minutos para finalizar! Encerrando...");
+                                    script="taskkill /FI \"IMAGENAME eq FreeFileSync.exe\"";
+                                    job.executarScript(script, model);
+                                    model.setStatus(false);
+                                    EnviarEmail();
+                                    Thread.interrupted();
+                                }
+                                else
+                                    Thread.sleep(5*1000);
+                            } catch (InterruptedException ex) {
+                                atualizarTela("Sistema interrompido(Aguardando encerramento FreeFileSync): Detalhes do erro: "+ex);
+                                model.setStatus(false);
+                            }
+                        }
+                        atualizarTela("FreeFileSync concluido...pegando diretorio "+dir.getDiretorioVersao());
+                        File file1 = new File(dir.getDiretorioVersao());
+                        if(!file1.exists())
+                            file1.mkdir();
+                        if(file1.exists()){
+                            File[] files = file1.listFiles();
+                            if(files.length>0){
+                            //criar diretorio dos arquivos caso não exista
+                            File arq = new File(dir.getDiretorioDosArquivos());
+                            if(!arq.exists()){
+                                arq.mkdir();
+                            }
+                            atualizarTela("Zipando a pasta "+dir.getDiretorioVersao());
+
+                            script="\""+dir.getDiretorioRar()+"\\winrar\" a "+bat.getDeleteRar()+" \""+dir.getDiretorioDosArquivos()+"\\"+model.getDia()+"-"+model.getMes()+"-"+model.getAno()+"-"+model.getHoraAgora().replace(":","")+".rar\" "+"\""+dir.getDiretorioVersao()+"\"";
+                            job.executarScript(script, model);
+                            if(model.isStatus()==true){
+                                for(int i =0; ; i++){//aqui é o contrario, verificarei quando o job ira terminar para tentar proxima etapa
+                                    try {
+                                        if(job.verificarExecucaoImediata("tasklist /FI \"IMAGENAME eq winrar.exe\"").equals("Fechado")){
+                                            model.setStatus(true);
+                                            break;
+                                        }
+                                        else if(i==bat.getTempoEspera()){
+                                            atualizarTela("Winrar demorou "+bat.getTempoEspera()+" minutos para finalizar! Encerrando...");
+                                            script="taskkill /FI \"IMAGENAME eq winrar.exe\"";
+                                            job.executarScript(script, model);
+                                            model.setStatus(false);
+                                            EnviarEmail();
+                                            Thread.interrupted();
+                                        }
+                                        else
+                                            Thread.sleep(5*1000);
+                                    } catch (InterruptedException ex) {
+                                        atualizarTela("Sistema interrompido(Aguardando encerramento Compactador): Detalhes do erro: "+ex);
+                                        model.setStatus(false);
+                                    }
+                                }
+                                if(model.isStatus()==true){
+                                    atualizarTela("Diretorio comprimido para "+dir.getDiretorioDosArquivos());
+                                    
+                                    FileOrganizar organizar = new FileOrganizar(model);
+                                    
+                                    atualizarTela("Arquivos disponiveis no diretorio: "+organizar.listarArquivos(dir));
+                                    
+                                    organizar.criarDiretorios(file1);
+                                    
+                                    atualizarTela("Organizando pastas de arquivos em " +dir.getDiretorioDosArquivos());
+                                    organizar.organizar(dir.getDiretorioDosArquivos());
+                                    atualizarTela("Organização pronta");
+                                    
+                                    if(bat.getHabilitarCopia()==1){
+                                        if(model.getDiaDoMes()==bat.getDiaCopia()){
+                                            atualizarTela("Dia apontado para backup de arquivos");
+                                            FileBackup fileBackup = new FileBackup(model, dir.getDiretorioDosArquivos(), dir.getDiretorioDestinoVersaoRar());
+                                        }
+                                    }
+                                    atualizarTela("Processo concluido!");
+                                    EnviarEmail();
+                                }
+                                else
+                                    EnviarEmail();
+                            }
+                            else
+                                EnviarEmail();
+                            }
+                        else{
+                            model.setStatus(true);
+                            atualizarTela("Nenhuma ação será realizada. Não existe arquivos no diretorio: "+dir.getDiretorioVersao());
+                            EnviarEmail();
+                        }
+                    }
+                    else{
+                        model.setStatus(false);
+                        atualizarTela("Nenhuma ação será realizada. Não encontrado o diretorio: "+dir.getDiretorioVersao());
+                        EnviarEmail();
+                    }    
+                }
+                else{
+                    model.setStatus(false);
+                    atualizarTela("Problema com o comando FreeFileSync");
+                    EnviarEmail();
                 }
             }
-            atualizarTela("Identificado a execução do FreeFileSync...");
-            atualizarTela("FreeFileSync identificado...aguardando termino...");
-            
-            for(int i =0; job.verificarExecucaoImediata("tasklist /FI \"IMAGENAME eq FreeFileSync.exe\"").equals("Aberto"); i++){//aqui é o contrario, verificarei quando o job ira terminar para tentar proxima etapa
-                try {
-                    if(i==bat.getTempoEspera()){
-                        atualizarTela("FreeFileSync demorou "+bat.getTempoEspera()+" minutos para finalizar! Encerrando...");
-                        script="tasklist /FI \"IMAGENAME eq FreeFileSync.exe\"";
-                        ThreadScript();
-                        EnviarEmail();
-                    }
-                    else
-                        Thread.sleep(5*1000);
-                } catch (InterruptedException ex) {
-                    atualizarTela("Sistema interrompido(Aguardando encerramento FreeFileSync): Detalhes do erro: "+ex);}
-            }
-  
-            atualizarTela("FreeFileSync concluido...pegando diretorio "+dir.getDiretorioVersao());
-            
-            File file1 = new File(dir.getDiretorioVersao());
-            if(!file1.exists()){
-                atualizarTela("Diretorio de versão não existe! Criei um novo, encerrando por segurança..." );
-                file1.mkdir();
+            else{
+                model.setStatus(false);
+                atualizarTela("Nenhuma ação será tomada! Diretorio "+dir.getDiretorioVersao()+" não existe!");
                 EnviarEmail();
             }
-            
-            File arq = new File(dir.getDiretorioDosArquivos());
-            if(!arq.exists()){
-                arq.mkdir();
-            }
-            atualizarTela("Zipando a pasta "+dir.getDiretorioVersao());
-            
-            script="\""+dir.getDiretorioRar()+"\\winrar\" a "+bat.getDeleteRar()+" \""+dir.getDiretorioDosArquivos()+"\\"+model.getDia()+model.getMes()+".rar\" "+"\""+dir.getDiretorioVersao()+"\"";
-            ThreadScript();
-            for(int i =0; job.verificarExecucaoImediata("tasklist /FI \"IMAGENAME eq winrar.exe\"").equals("Aberto"); i++){//aqui é o contrario, verificarei quando o job ira terminar para tentar proxima etapa
-                try {
-                    if(i==bat.getTempoEspera()){
-                        atualizarTela("Winrar demorou "+bat.getTempoEspera()+" minutos para finalizar! Encerrando...");
-                        script="tasklist /FI \"IMAGENAME eq winrar.exe\"";
-                        ThreadScript();
-                        EnviarEmail();
-                    }
-                    else
-                        Thread.sleep(5*1000);
-                } catch (InterruptedException ex) {
-                    atualizarTela("Sistema interrompido(Aguardando encerramento Compactador): Detalhes do erro: "+ex);}
-            }
-            atualizarTela("Diretorio comprimido para "+dir.getDiretorioDosArquivos());
-            StringBuilder sb = new StringBuilder();
-            File[] files = new File(dir.getDiretorioDosArquivos()).listFiles();
-            for(File f : files){
-                if(f.isFile()){
-                    sb.append(f.getName()).append(";");
-                }
-            }
-            atualizarTela("Arquivos disponiveis no diretorio: "+sb);
-            if(!file1.exists()){
-                atualizarTela("Criando um novo diretorio para versao em "+dir.getDiretorioVersao());
-                file1.mkdir();//criar diretorio de versao caso não exista
-            }
-            atualizarTela("Organizando pastas de arquivos em " +dir.getDiretorioDosArquivos());
-            FileOrganizar organizar = new FileOrganizar(model, dir.getDiretorioDosArquivos());
-            atualizarTela("Organização pronta");
-            File backup = new File(dir.getDiretorioDestinoVersaoRar());
-            if(!backup.exists())
-                backup.mkdir();
-            
-            if(bat.getHabilitarCopia()==1){
-                if(calendario.get(Calendar.DAY_OF_MONTH)==bat.getDiaCopia()){
-                    atualizarTela("Dia apontado para backup de arquivos");
-                    FileBackup fileBackup = new FileBackup(model, dir.getDiretorioDosArquivos(), dir.getDiretorioDestinoVersaoRar());
-                }
-            }
-            atualizarTela("Processo concluido!");
-            model.setStatus(true);
-            EnviarEmail();
+            Thread.interrupted();
         }
     }
     public void atualizarTela(String texto){
@@ -220,20 +203,7 @@ public class ControllerMenu{
         else
             builder.append(texto);
         jTextArea1.setText(model.getMensagem(jTextArea1.getText(), texto));
-    }
-    //executa file sync em outra thread
-    public class ExecucaoScript implements Runnable{
-        @Override
-        public void run() {
-            job.executarScript(script);
-        }
-    }
-    private void ThreadScript(){
-        ExecucaoScript ex = new ExecucaoScript();
-        Thread script = new Thread(ex);
-        script.start();
-    }
-    
+    }   
     public void EnviarEmail(){
         AlertaEmail email = new AlertaEmail();
         Thread thread = new Thread(email);
@@ -243,39 +213,40 @@ public class ControllerMenu{
     public class AlertaEmail implements Runnable{
         @Override
         public void run(){
+            FileLog logSync = new FileLog();
+            String arquivo = logSync.pegaArquivoMaisNovo(dir.getDiretorioDoLogBatch());
+            File fileLog = new File(arquivo);
+
+            ModelLog modelLog = new ModelLog();
+            logSync.lerLog(modelLog, fileLog);
+            
+            
             if(contas.getAviso()==1){
                 String[] conta = contas.getEmail().split(";|; ");
-                File file = new File(dir.getDiretorioDoLogBatch());
-                File[] files = file.listFiles();
                 
-                File f1=null;
-                if(files.length==0){//verifica se diretorio esta vazio
-                    try {
-                        f1= new File(dir.getDiretorioDoLogBatch()+"\\NaoExiseLog.txt");
-                        f1.createNewFile();
-                    } catch (IOException ex) {
-                    }
-                }
-                else{//senão estiver vazio
-                    for(File f : files){
-                        f1= new File(f.getAbsolutePath());
-                    }
-                }
                 for (String conta1 : conta) {
                     if (conta1.equals("")) {break;}
 
                     int tentativas = 1;
                     Email email = new Email();
-                    //email enviado com sucesso para
-                    String resumo;
-                    if(model.isStatus())
-                        resumo = "SUCESSO";
+                    //email enviado
+                    String status="";
+                    if(model.isStatus()==true){
+                        if(modelLog.getStatusSync().contains("sucesso") || modelLog.getStatusSync().contains("Nada"))
+                            status = "SUCESSO";
+                    }
                     else
-                        resumo = "FALHA";
+                        status = "FALHA";
                     
-                    String log = "O ChildTask terminou a rotina diaria com "+resumo+"! Detalhes abaixo!\n\n"+jTextArea1.getText();
-
-                    while(email.enviarEmail(f1.getAbsolutePath(), resumo, log, conta1)==false){
+                    String mensagem = "O TaskChild terminou a rotina diaria com "+status+"! Detalhes abaixo!\n\n"
+                            +"Resumo do Backup:\n"
+                            +"Sincronização "+modelLog.getStatusSync()+"!\n"
+                            +"Arquivos Modificados/Excluidos: "+modelLog.getElementosProcessados()+"\n"
+                            +"Tempo de Execução: "+modelLog.getTempoTotal()+"\n\n"
+                            +"Tarefa em paralelo:\n\n"
+                            +jTextArea1.getText();
+                    
+                    while(email.enviarEmail(arquivo, status, mensagem, conta1)==false){
                         try {
                             tentativas++;
                             if(tentativas<=3){
@@ -285,19 +256,30 @@ public class ControllerMenu{
                             else{
                                 atualizarTela("Numero de tentativas se esgotou! Necessita de intervenção humana!");
                                 gravaLog();
-                                for(File f:files)
-                                    f.delete();
                                 System.exit(0);
                             }
                         } catch (InterruptedException ex) {
                             atualizarTela("Falha, o processo foi interrompido");
                         }
                     }
-                    for(File f:files){
-                        f.delete();
-                    }
+                    FileOrganizar organizar = new FileOrganizar(model);
+                    File fileDest = new File(dir.getDiretorioDoLog()+"\\"+fileLog.getName());
+                    organizar.moverLog(fileLog, fileDest);
+                    organizar.limparPasta(dir.getDiretorioDoLogBatch());
                     atualizarTela("Email enviado com sucesso!");
                     System.exit(0);
+                }
+            }
+            else{
+                try {
+                    gravaLog();
+                    FileOrganizar organizar = new FileOrganizar(model);
+                    File fileDest = new File(dir.getDiretorioDoLog()+"\\"+fileLog.getName());
+                    organizar.moverLog(fileLog, fileDest);
+                    organizar.limparPasta(dir.getDiretorioDoLog());
+                    Thread.sleep(30*1000);
+                    System.exit(0);
+                } catch (InterruptedException ex) {
                 }
             }
         }

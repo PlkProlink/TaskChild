@@ -1,7 +1,9 @@
 package br.com.tiagods.model;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 /*
  * Todos direitos reservados a Tiago Dias de Souza.
@@ -12,129 +14,155 @@ import java.util.Date;
  *
  * @author Tiago Dias
  */
-public class Model {
-        
-    private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-    private SimpleDateFormat sdh = new SimpleDateFormat("HH:mm");
+public class Model {  
+    
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    SimpleDateFormat sdh = new SimpleDateFormat("HH:mm");
+    Date data = new Date();
+    GregorianCalendar calendario = new GregorianCalendar();
     
     private boolean status=false;
     private String horaAgora;
     private String dataAgora;
-    private String dia;
-    private String mes;
-    private String ano;
-    
-    public void setHoraAgora(String hora){
-        this.horaAgora=hora;
+        
+    public Model(){
+        calendario.setTime(data);
     }
     
+    
     public String getHoraAgora(){
-        Date data = new Date();
-        this.horaAgora = getSdh().format(data);
+        data = new Date();
+        this.horaAgora = sdh.format(data);
         //model.setHoraAgora(hora);
         return horaAgora;
     }
-    
     public String getDataAgora(){
-        Date data=new Date();
-        this.dataAgora = getSdf().format(data);
+        this.dataAgora = sdf.format(data);
         
         return dataAgora;
         
     }
+    //mensagem será incrementada
     public String getMensagem(String textArea, String msg){
         StringBuilder builder = new StringBuilder();
         String quebra="";
+        //quebra de linha na txtArea
         if(textArea.length()>=1){
             quebra="\n";
         }
+        //mensagem na tela
         builder.append(textArea)
                 .append(quebra)
                 .append(getDataAgora())
-                .append("=")
+                .append("-")
                 .append(getHoraAgora())
                 .append("=")
                 .append(msg);
-        return builder.toString();
-    }
-
-    /**
-     * @return the sdf
-     */
-    public SimpleDateFormat getSdf() {
-        return sdf;
-    }
-
-    /**
-     * @param sdf the sdf to set
-     */
-    public void setSdf(SimpleDateFormat sdf) {
-        this.sdf = sdf;
-    }
-
-    /**
-     * @return the sdh
-     */
-    public SimpleDateFormat getSdh() {
-        return sdh;
-    }
-
-    /**
-     * @param sdh the sdh to set
-     */
-    public void setSdh(SimpleDateFormat sdh) {
-        this.sdh = sdh;
-    }
-
-    /**
-     * @param dataAgora the dataAgora to set
-     */
-    public void setDataAgora(String dataAgora) {
-        this.dataAgora = dataAgora;
+        return builder.toString();//retornar a mensagem na tela, completando com o que ja foi impresso na tela.
     }
 
     /**
      * @return the dia
      */
     public String getDia() {
-        return dia;
-    }
-
-    /**
-     * @param dia the dia to set
-     */
-    public void setDia(String dia) {
-        this.dia = dia;
+        //*pegando data hoje
+        int diaHoje = calendario.get(Calendar.DAY_OF_MONTH);
+        if(diaHoje>=0 && diaHoje<=9)
+            return "0"+diaHoje;
+        else
+            return ""+diaHoje;
     }
 
     /**
      * @return the mes
      */
     public String getMes() {
+        int mesAtual = calendario.get(Calendar.MONTH);
+        switch(mesAtual){
+            case 0:
+                mesAtual=1;
+                break;
+            case 1:
+                mesAtual=2;
+                break;
+            case 2:
+                mesAtual=3;
+                break;
+            case 3:
+                mesAtual=4;
+                break;
+            case 4:
+                mesAtual=5;
+                break;
+            case 5:
+                mesAtual=6;
+                break;
+            case 6:
+                mesAtual=7;
+                break;
+            case 7:
+                mesAtual=8;
+                break;
+            case 8:
+                mesAtual=9;
+                break;
+            case 9:
+                mesAtual=10;
+                break;
+            case 10:
+                mesAtual=11;
+                break;
+            case 11:
+                mesAtual=12;
+                break;
+        }
+        if(mesAtual>=0 && mesAtual<=9)
+            return "0"+mesAtual;
+        else
+            return ""+mesAtual;
+    }
+
+    public String getMesExtenso(String mes){
+        switch(mes){
+            case "01":
+                return "Janeiro";
+            case "02":
+                return "Fevereiro";
+            case "03":
+                return "Março";
+            case "04":
+                return "Abril";
+            case "05":
+                return "Maio";
+            case "06":
+                return "Junho";
+            case "07":
+                return "Julho";
+            case "08":
+                return "Agosto";
+            case "09":
+                return "Setembro";
+            case "10":
+                return "Outubro";
+            case "11":
+                return "Novembro";
+            case "12":
+                return "Dezembro";
+        }
         return mes;
     }
-
-    /**
-     * @param mes the mes to set
-     */
-    public void setMes(String mes) {
-        this.mes = mes;
-    }
-
     /**
      * @return the ano
      */
-    public String getAno() {
-        return ano;
+    public int getAno() {
+        return calendario.get(Calendar.YEAR);
     }
-
     /**
-     * @param ano the ano to set
+     * @return the DiaDoMes
      */
-    public void setAno(String ano) {
-        this.ano = ano;
+    public int getDiaDoMes() {
+        return calendario.get(Calendar.DAY_OF_MONTH);
     }
-
     /**
      * @return the status
      */
@@ -148,4 +176,6 @@ public class Model {
     public void setStatus(boolean status) {
         this.status = status;
     }
+   
+
 }

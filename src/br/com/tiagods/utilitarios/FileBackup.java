@@ -37,6 +37,7 @@ public class FileBackup {
         this.model = model;
         this.dirInicial=dirOrigem;
         this.dirFinal=dirDestino;
+        
         verificando();
     }
     
@@ -73,7 +74,7 @@ public class FileBackup {
             atualizarTela(mensagem);
             Path pathI = Paths.get(fileInicial.getAbsolutePath());
             Path pathO = Paths.get(fileFinal.getAbsolutePath());
-            Files.copy(pathI, pathO, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(pathI, pathO, StandardCopyOption.REPLACE_EXISTING);
         }catch(IOException e){
         }
     }

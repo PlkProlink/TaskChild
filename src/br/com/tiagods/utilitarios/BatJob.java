@@ -22,8 +22,15 @@ public class BatJob {
         this.model = model;
     }
     
-    public void executarScript(String comando){
-        lerSystem(comando);
+    
+    public void executarScript(String comando, Model model){
+        try{
+            Runtime.getRuntime().exec(comando);
+            model.setStatus(true);
+        }catch(IOException e){
+            atualizarTela("Não foi possivel executar o comando: "+comando+", programa ou caminho não existe!");
+            model.setStatus(false);
+        }
     }
     //verificar se o programa esta aberto, se fechado gerara um relatorio de erro e não prosseguira
     public String verificarExecucaoImediata(String comando){
@@ -43,14 +50,16 @@ public class BatJob {
             while((v=stream.read())!=-1){
                 saida += ((char)v);
             }
+            model.setStatus(true);
             return saida;
         }catch(IOException e){
-            atualizarTela("Não foi possivel executar o processo, programa ou caminho não existe!");
+            atualizarTela("Não foi possivel executar o comando: "+comando+", programa ou caminho não existe!");
             model.setStatus(false);
             enviarEmail();
             return "";
         }
     }
+    
     public void atualizarTela(String texto){
         //mostrar informacao nao tela
         if(builder.length()>0)

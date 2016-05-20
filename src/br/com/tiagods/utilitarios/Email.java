@@ -55,16 +55,23 @@ public class Email {
                 // cria a primeira parte da mensagem
                 MimeBodyPart mbp1 = new MimeBodyPart();
                 mbp1.setText(mensagem);
-                // cria a segunda parte da mensage
-                MimeBodyPart mbp2 = new MimeBodyPart();
-                // anexa o arquivo na mensagem
-                FileDataSource fds = new FileDataSource(arquivoLog);
-                mbp2.setDataHandler(new DataHandler(fds));
-                mbp2.setFileName(fds.getName());
-                 // cria a Multipart
                 Multipart mp = new MimeMultipart();
                 mp.addBodyPart(mbp1);
-                mp.addBodyPart(mbp2);
+                
+                if(!arquivoLog.equals("")){
+                // cria a segunda parte da mensage
+                    MimeBodyPart mbp2 = new MimeBodyPart();
+                    // anexa o arquivo na mensagem
+                    FileDataSource fds = new FileDataSource(arquivoLog);
+                    mbp2.setDataHandler(new DataHandler(fds));
+                    mbp2.setFileName(fds.getName());
+                    mp.addBodyPart(mbp2);
+                } 
+
+//                // cria a Multipart
+//                Multipart mp = new MimeMultipart();
+//                mp.addBodyPart(mbp1);
+//                mp.addBodyPart(mbp2);
                 // adiciona a Multipart na mensagem
                 message.setContent(mp);
                 // configura a data: cabecalho
