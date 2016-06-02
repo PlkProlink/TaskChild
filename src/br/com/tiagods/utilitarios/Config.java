@@ -44,11 +44,12 @@ public class Config {
             bat.setExtensao(properties.getProperty("ExtensaoDoBat"));
             bat.setDeleteRar(properties.getProperty("DeleteRar"));
             conta.setEmail(properties.getProperty("Contas"));
+            bat.setDiaCopia(properties.getProperty("DiaCopia"));
             try{
                 bat.setHabilitarCopia(Integer.parseInt(properties.getProperty("HabilitarCopia")));
-                bat.setDiaCopia(Integer.parseInt(properties.getProperty("DiaCopia")));
                 bat.setTempoEspera(Integer.parseInt(properties.getProperty("TempoExecucao")));
-                conta.setAviso(Integer.parseInt(properties.getProperty("Avisos")));
+                bat.setSalvarEmBanco(Integer.parseInt(properties.getProperty("SalvarEmBanco")));
+            conta.setAviso(Integer.parseInt(properties.getProperty("Avisos")));
                 //System.out.println(conta.getAviso());
             }catch(NumberFormatException e){
                 criarConfig();
@@ -108,7 +109,9 @@ public class Config {
                             "#Receber log por e-mail 0=Nao, 1=Sim, \n" +
                             "Avisos=1\n" +
                             "#Conta's de e-mail(no maximo 3) separado por ponto e virgula (;)\n" +
-                            "Contas=tiago.dias@prolinkcontabil.com.br";
+                            "Contas=tiago.dias@prolinkcontabil.com.br"+
+                            "#Salvar Log de em banco de dados? 1-Sim, 0-Nao\n"+
+                            "SalvarEmBanco=1";
                 fWriter.write(str);
                 fWriter.close();
                 return true;

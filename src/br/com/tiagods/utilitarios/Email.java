@@ -67,7 +67,6 @@ public class Email {
                     mbp2.setFileName(fds.getName());
                     mp.addBodyPart(mbp2);
                 } 
-
 //                // cria a Multipart
 //                Multipart mp = new MimeMultipart();
 //                mp.addBodyPart(mbp1);

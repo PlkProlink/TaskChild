@@ -7,6 +7,7 @@ package br.com.tiagods.controller;
 import br.com.tiagods.model.Model;
 import br.com.tiagods.model.ModelBat;
 import br.com.tiagods.model.ModelConta;
+import br.com.tiagods.model.ModelDao;
 import br.com.tiagods.model.ModelDiretorios;
 import br.com.tiagods.model.ModelLog;
 import br.com.tiagods.utilitarios.BatJob;
@@ -19,6 +20,8 @@ import static br.com.tiagods.view.Menu.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 /**
  *
  * @author Tiago
@@ -76,15 +79,14 @@ public class ControllerMenu{
                         } catch (InterruptedException ex) {
                             atualizarTela("Sistema interrompido(Abertura Script): Detalhes do erro: "+ex);
                             model.setStatus(false);
+                            EnviarEmail();
                         }
                     }
                     if(model.isStatus()==true){
                         atualizarTela("Identificado a execução do FreeFileSync...");
                         atualizarTela("FreeFileSync identificado...aguardando termino...");
-
                         for(int i =0; ; i++){//aqui é o contrario, verificarei quando o job ira terminar para tentar proxima etapa
                             try {
-
                                 if(job.verificarExecucaoImediata("tasklist /FI \"IMAGENAME eq FreeFileSync.exe\"").equals("Fechado")){
                                     model.setStatus(true);
                                     break;
@@ -102,6 +104,7 @@ public class ControllerMenu{
                             } catch (InterruptedException ex) {
                                 atualizarTela("Sistema interrompido(Aguardando encerramento FreeFileSync): Detalhes do erro: "+ex);
                                 model.setStatus(false);
+                                EnviarEmail();
                             }
                         }
                         atualizarTela("FreeFileSync concluido...pegando diretorio "+dir.getDiretorioVersao());
@@ -117,8 +120,7 @@ public class ControllerMenu{
                                 arq.mkdir();
                             }
                             atualizarTela("Zipando a pasta "+dir.getDiretorioVersao());
-
-                            script="\""+dir.getDiretorioRar()+"\\winrar\" a "+bat.getDeleteRar()+" \""+dir.getDiretorioDosArquivos()+"\\"+model.getDia()+"-"+model.getMes()+"-"+model.getAno()+"-"+model.getHoraAgora().replace(":","")+".rar\" "+"\""+dir.getDiretorioVersao()+"\"";
+                            script="\""+dir.getDiretorioRar()+"\\winrar\" a -inul "+bat.getDeleteRar()+" \""+dir.getDiretorioDosArquivos()+"\\"+model.getDia()+"-"+model.getMes()+"-"+model.getAno()+"-"+model.getHoraAgora().replace(":","")+".rar\" "+"\""+dir.getDiretorioVersao()+"\"";
                             job.executarScript(script, model);
                             if(model.isStatus()==true){
                                 for(int i =0; ; i++){//aqui é o contrario, verificarei quando o job ira terminar para tentar proxima etapa
@@ -140,25 +142,27 @@ public class ControllerMenu{
                                     } catch (InterruptedException ex) {
                                         atualizarTela("Sistema interrompido(Aguardando encerramento Compactador): Detalhes do erro: "+ex);
                                         model.setStatus(false);
+                                        EnviarEmail();
                                     }
                                 }
                                 if(model.isStatus()==true){
                                     atualizarTela("Diretorio comprimido para "+dir.getDiretorioDosArquivos());
-                                    
                                     FileOrganizar organizar = new FileOrganizar(model);
-                                    
                                     atualizarTela("Arquivos disponiveis no diretorio: "+organizar.listarArquivos(dir));
-                                    
                                     organizar.criarDiretorios(file1);
-                                    
                                     atualizarTela("Organizando pastas de arquivos em " +dir.getDiretorioDosArquivos());
                                     organizar.organizar(dir.getDiretorioDosArquivos());
                                     atualizarTela("Organização pronta");
-                                    
                                     if(bat.getHabilitarCopia()==1){
-                                        if(model.getDiaDoMes()==bat.getDiaCopia()){
-                                            atualizarTela("Dia apontado para backup de arquivos");
-                                            FileBackup fileBackup = new FileBackup(model, dir.getDiretorioDosArquivos(), dir.getDiretorioDestinoVersaoRar());
+                                        String[] diaMes = bat.getDiaCopia().split(";|; ");
+                                        for(String diaHoje : diaMes){
+                                            if(model.getDiaDoMes()==Integer.parseInt(diaHoje)){//pegará a relação do config, se o dia de hoje for igual a um dos dias informados, o backup será realizado
+                                                atualizarTela("Dia apontado para backup de arquivos...iniciando!");
+                                                atualizarTela("Arquivos serão copiados para "+dir.getDiretorioDestinoVersaoRar());
+                                                FileBackup fileBackup = new FileBackup();
+                                                fileBackup.iniciar(model, dir.getDiretorioDosArquivos(), dir.getDiretorioDestinoVersaoRar());
+                                                break;
+                                            }
                                         }
                                     }
                                     atualizarTela("Processo concluido!");
@@ -185,8 +189,7 @@ public class ControllerMenu{
                 else{
                     model.setStatus(false);
                     atualizarTela("Problema com o comando FreeFileSync");
-                    EnviarEmail();
-                }
+                    EnviarEmail();                }
             }
             else{
                 model.setStatus(false);
@@ -213,39 +216,69 @@ public class ControllerMenu{
     public class AlertaEmail implements Runnable{
         @Override
         public void run(){
-            FileLog logSync = new FileLog();
-            String arquivo = logSync.pegaArquivoMaisNovo(dir.getDiretorioDoLogBatch());
+            FileLog logSync = new FileLog();//classe que trata o arquivo do log
+            String arquivo = logSync.pegaArquivoMaisNovo(dir.getDiretorioDoLogBatch());//pegar o arquivo log mais novo
+            atualizarTela("Ultimo log gerado: "+arquivo);
             File fileLog = new File(arquivo);
-
             ModelLog modelLog = new ModelLog();
-            logSync.lerLog(modelLog, fileLog);
-            
-            
+            if(fileLog.isFile()){
+                atualizarTela("Tratando arquivo!");
+                logSync.lerLog(modelLog, arquivo);//iniciando tratamento do log
+                ModelDao dao = new ModelDao();
+                atualizarTela("Salvando log no banco de dados!Aguarde alguns minutos...");
+                if(dao.gravaLog(model, modelLog)){//gravar no banco de dados
+                    List<String> lista = new ArrayList<>();
+                    lista = modelLog.getDescricao();
+                    atualizarTela("Concluindo...");
+                    atualizarTela(+lista.size()+" novos registros foram salvos! Para consultar execute o TaskManager");
+                }else
+                    atualizarTela("Falha ao salvar arquivo no banco de dados!");
+            }
             if(contas.getAviso()==1){
                 String[] conta = contas.getEmail().split(";|; ");
-                
+                atualizarTela("Contas informadas: "+contas.getEmail());
                 for (String conta1 : conta) {
                     if (conta1.equals("")) {break;}
-
+                    atualizarTela("Enviando e-mail para: "+conta1);
                     int tentativas = 1;
                     Email email = new Email();
                     //email enviado
-                    String status="";
+                    String status="SUCESSO",status2="", linhaExtra="";//a linha extra incrementa a frase caso alguma coisa tenha dado errado na sincronizacao
                     if(model.isStatus()==true){
-                        if(modelLog.getStatusSync().contains("sucesso") || modelLog.getStatusSync().contains("Nada"))
+                        if(modelLog.getStatusSync().contains("Sucesso") || modelLog.getStatusSync().contains("Interrompido")){
                             status = "SUCESSO";
+                            if(modelLog.getStatusSync().contains("Interrompido")){
+                                linhaExtra="Arquivos Pendentes: "+modelLog.getElementosRestantes()
+                                    +"\tTamanho dos Arquivos: "+modelLog.getTamanhoRestante();
+                            }
+                        }
+                        else if(modelLog.getStatusSync().contains("Erro")){
+                            int porcentagem = 100 - (modelLog.getElementosRestantes()*100)
+                                    /(modelLog.getElementos()+modelLog.getElementosRestantes());
+                            //calculo para pegar qual a porcentagem de arquivo backupeado
+                            status=porcentagem+"% Sincronizado";
+                            status2="\nAlgum arquivo estava sendo usado no momento da transferencia e não pode ser copiado,\n"
+                                    + "Não se preocupe, ele deverá entrar no proximo backup agendado!";
+                            
+                            linhaExtra="Arquivos Pendentes: "+modelLog.getElementosRestantes()
+                                +"\tTamanho dos Arquivos: "+modelLog.getTamanhoRestante();
+                        }
+                        else
+                            status="ERRO";
                     }
                     else
-                        status = "FALHA";
-                    
-                    String mensagem = "O TaskChild terminou a rotina diaria com "+status+"! Detalhes abaixo!\n\n"
+                        status = "ERRO";
+                    String mensagem = "O TaskChild terminou a rotina diaria com "+status+"!"+status2
+                            +" Detalhes abaixo!\n\n"
                             +"Resumo do Backup:\n"
-                            +"Sincronização "+modelLog.getStatusSync()+"!\n"
-                            +"Arquivos Modificados/Excluidos: "+modelLog.getElementosProcessados()+"\n"
+                            +"Status da Sincronização: "+modelLog.getStatusSync()+"!\n"
+                            +"Arquivos Modificados/Excluidos: "+modelLog.getElementos()+"\n"
+                            +"Tamanho dos Arquivos(MB): "+modelLog.getTamanhoElementos()+"\n"
+                            +linhaExtra
                             +"Tempo de Execução: "+modelLog.getTempoTotal()+"\n\n"
                             +"Tarefa em paralelo:\n\n"
                             +jTextArea1.getText();
-                    
+                    //tentando enviar e-mail por 3 vezes, caso falhe, gravarei log e irei sair
                     while(email.enviarEmail(arquivo, status, mensagem, conta1)==false){
                         try {
                             tentativas++;
@@ -262,30 +295,27 @@ public class ControllerMenu{
                             atualizarTela("Falha, o processo foi interrompido");
                         }
                     }
-                    FileOrganizar organizar = new FileOrganizar(model);
-                    File fileDest = new File(dir.getDiretorioDoLog()+"\\"+fileLog.getName());
-                    organizar.moverLog(fileLog, fileDest);
-                    organizar.limparPasta(dir.getDiretorioDoLogBatch());
+                    
                     atualizarTela("Email enviado com sucesso!");
-                    System.exit(0);
                 }
             }
-            else{
-                try {
-                    gravaLog();
-                    FileOrganizar organizar = new FileOrganizar(model);
-                    File fileDest = new File(dir.getDiretorioDoLog()+"\\"+fileLog.getName());
-                    organizar.moverLog(fileLog, fileDest);
-                    organizar.limparPasta(dir.getDiretorioDoLog());
-                    Thread.sleep(30*1000);
-                    System.exit(0);
-                } catch (InterruptedException ex) {
-                }
+            try {
+                gravaLog();
+                FileOrganizar organizar = new FileOrganizar(model);
+                File fileDest = new File(dir.getDiretorioDoLog()+"\\"+fileLog.getName());
+                organizar.moverLog(fileLog, fileDest);
+                organizar.limparPasta(dir.getDiretorioDoLog());
+                Thread.sleep(30*1000);
+            } catch (InterruptedException ex) {
+                atualizarTela("Falha, o processo foi interrompido");
+            } finally{
+                System.exit(0);
             }
         }
     }
     
     void gravaLog(){
+        //gerar um arquivo de log por segurança do sistema
         File file = new File(dir.getDiretorioDoLog()+"\\"+model.getDia()+model.getMes()+model.getHoraAgora().replace(":", "")+".txt");
         try{
         file.createNewFile();

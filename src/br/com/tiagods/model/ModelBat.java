@@ -12,9 +12,10 @@ public class ModelBat {
     private String nome;
     private String extensao;
     private int TempoEspera;
-    private int DiaCopia;
+    private String DiaCopia;
     private int HabilitarCopia;
     private String DeleteRar;
+    private int SalvarEmBanco;
 
     /**
      * @return the nome
@@ -75,14 +76,14 @@ public class ModelBat {
     /**
      * @return the DiaCopia
      */
-    public int getDiaCopia() {
+    public String getDiaCopia() {
         return DiaCopia;
     }
 
     /**
      * @param DiaCopia the DiaCopia to set
      */
-    public void setDiaCopia(int DiaCopia) {
+    public void setDiaCopia(String DiaCopia) {
         this.DiaCopia = DiaCopia;
     }
 
@@ -98,6 +99,20 @@ public class ModelBat {
      */
     public void setHabilitarCopia(int HabilitarCopia) {
         this.HabilitarCopia = HabilitarCopia;
+    }
+
+    /**
+     * @return the SalvarEmBanco
+     */
+    public int getSalvarEmBanco() {
+        return SalvarEmBanco;
+    }
+
+    /**
+     * @param SalvarEmBanco the SalvarEmBanco to set
+     */
+    public void setSalvarEmBanco(int SalvarEmBanco) {
+        this.SalvarEmBanco = SalvarEmBanco;
     }
 
 }

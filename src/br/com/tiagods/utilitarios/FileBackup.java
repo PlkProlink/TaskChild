@@ -32,12 +32,13 @@ public class FileBackup {
         jTextArea1.setText(model.getMensagem(jTextArea1.getText(), texto));
     }
     
-    public FileBackup(Model model,String dirOrigem, String dirDestino){
+    public FileBackup(){
         builder = new StringBuilder();
+    }
+    public void iniciar(Model model,String dirOrigem, String dirDestino){
         this.model = model;
         this.dirInicial=dirOrigem;
         this.dirFinal=dirDestino;
-        
         verificando();
     }
     
@@ -60,7 +61,7 @@ public class FileBackup {
                         System.out.println("O arquivo ja existe e não foi modificado!");
                 }
                 else
-                    atualizar(fIn, fFim, "Arquivo "+fFim+" não existe, copiando "+fIn);
+                    atualizar(fIn, fFim, "Arquivo "+fFim+" não existe, copiando para "+fIn);
                 if(fIn.isDirectory()){
                     dirInicial = fIn.getAbsolutePath();
                     dirFinal =  fFim.getAbsolutePath();
