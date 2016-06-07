@@ -16,6 +16,10 @@ public class ModelBat {
     private int HabilitarCopia;
     private String DeleteRar;
     private int SalvarEmBanco;
+<<<<<<< HEAD:taskChild-Config/src/br/com/tiagods/model/ModelBat.java
+=======
+
+>>>>>>> origin/master:src/br/com/tiagods/model/ModelBat.java
     /**
      * @return the nome
      */

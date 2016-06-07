@@ -20,7 +20,10 @@ import static br.com.tiagods.view.Menu.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+<<<<<<< HEAD:taskChild-App/src/br/com/tiagods/controller/ControllerMenu.java
 import java.text.DecimalFormat;
+=======
+>>>>>>> origin/master:src/br/com/tiagods/controller/ControllerMenu.java
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -155,9 +158,15 @@ public class ControllerMenu{
                                     organizar.organizar(dir.getDiretorioDosArquivos());
                                     atualizarTela("Organização pronta");
                                     if(bat.getHabilitarCopia()==1){
+<<<<<<< HEAD:taskChild-App/src/br/com/tiagods/controller/ControllerMenu.java
                                         String[] diaMes = bat.getDiaCopia().split(";");
                                         for(String diaHoje : diaMes){
                                             if(model.getDiaDoMes()==Integer.parseInt(diaHoje.trim())){//pegará a relação do config, se o dia de hoje for igual a um dos dias informados, o backup será realizado
+=======
+                                        String[] diaMes = bat.getDiaCopia().split(";|; ");
+                                        for(String diaHoje : diaMes){
+                                            if(model.getDiaDoMes()==Integer.parseInt(diaHoje)){//pegará a relação do config, se o dia de hoje for igual a um dos dias informados, o backup será realizado
+>>>>>>> origin/master:src/br/com/tiagods/controller/ControllerMenu.java
                                                 atualizarTela("Dia apontado para backup de arquivos...iniciando!");
                                                 atualizarTela("Arquivos serão copiados para "+dir.getDiretorioDestinoVersaoRar());
                                                 FileBackup fileBackup = new FileBackup();
@@ -227,6 +236,7 @@ public class ControllerMenu{
                 logSync.lerLog(modelLog, arquivo);//iniciando tratamento do log
                 ModelDao dao = new ModelDao();
                 atualizarTela("Salvando log no banco de dados!Aguarde alguns minutos...");
+<<<<<<< HEAD:taskChild-App/src/br/com/tiagods/controller/ControllerMenu.java
                 if(bat.getSalvarEmBanco()==1)
                 {
                     if(dao.gravaLog(model, modelLog)){//gravar no banco de dados
@@ -240,10 +250,26 @@ public class ControllerMenu{
             }
             if(contas.getAviso()==1){
                 String[] conta = contas.getEmail().split(";");
+=======
+                if(dao.gravaLog(model, modelLog)){//gravar no banco de dados
+                    List<String> lista = new ArrayList<>();
+                    lista = modelLog.getDescricao();
+                    atualizarTela("Concluindo...");
+                    atualizarTela(+lista.size()+" novos registros foram salvos! Para consultar execute o TaskManager");
+                }else
+                    atualizarTela("Falha ao salvar arquivo no banco de dados!");
+            }
+            if(contas.getAviso()==1){
+                String[] conta = contas.getEmail().split(";|; ");
+>>>>>>> origin/master:src/br/com/tiagods/controller/ControllerMenu.java
                 atualizarTela("Contas informadas: "+contas.getEmail());
                 for (String conta1 : conta) {
                     if (conta1.equals("")) {break;}
                     atualizarTela("Enviando e-mail para: "+conta1);
+<<<<<<< HEAD:taskChild-App/src/br/com/tiagods/controller/ControllerMenu.java
+=======
+                    int tentativas = 1;
+>>>>>>> origin/master:src/br/com/tiagods/controller/ControllerMenu.java
                     Email email = new Email();
                     //email enviado
                     String status="SUCESSO",status2="", linhaExtra="";//a linha extra incrementa a frase caso alguma coisa tenha dado errado na sincronizacao
@@ -252,6 +278,7 @@ public class ControllerMenu{
                             status = "SUCESSO";
                             if(modelLog.getStatusSync().contains("Interrompido")){
                                 linhaExtra="Arquivos Pendentes: "+modelLog.getElementosRestantes()
+<<<<<<< HEAD:taskChild-App/src/br/com/tiagods/controller/ControllerMenu.java
                                     +"\nTamanho dos Arquivos(MB): "+modelLog.getTamanhoRestante();
                             }
                         }
@@ -265,6 +292,21 @@ public class ControllerMenu{
                                     + "Não se preocupe, ele deverá entrar no proximo backup agendado!";
                             linhaExtra="Arquivos Pendentes: "+modelLog.getElementosRestantes()
                                 +"\nTamanho dos Arquivos: "+modelLog.getTamanhoRestante()+"\n";
+=======
+                                    +"\tTamanho dos Arquivos: "+modelLog.getTamanhoRestante();
+                            }
+                        }
+                        else if(modelLog.getStatusSync().contains("Erro")){
+                            int porcentagem = 100 - (modelLog.getElementosRestantes()*100)
+                                    /(modelLog.getElementos()+modelLog.getElementosRestantes());
+                            //calculo para pegar qual a porcentagem de arquivo backupeado
+                            status=porcentagem+"% Sincronizado";
+                            status2="\nAlgum arquivo estava sendo usado no momento da transferencia e não pode ser copiado,\n"
+                                    + "Não se preocupe, ele deverá entrar no proximo backup agendado!";
+                            
+                            linhaExtra="Arquivos Pendentes: "+modelLog.getElementosRestantes()
+                                +"\tTamanho dos Arquivos: "+modelLog.getTamanhoRestante();
+>>>>>>> origin/master:src/br/com/tiagods/controller/ControllerMenu.java
                         }
                         else
                             status="ERRO";
@@ -282,7 +324,11 @@ public class ControllerMenu{
                             +"Tarefa em paralelo:\n\n"
                             +jTextArea1.getText();
                     //tentando enviar e-mail por 3 vezes, caso falhe, gravarei log e irei sair
+<<<<<<< HEAD:taskChild-App/src/br/com/tiagods/controller/ControllerMenu.java
                     for(int i=0; ;i++){
+=======
+                    while(email.enviarEmail(arquivo, status, mensagem, conta1)==false){
+>>>>>>> origin/master:src/br/com/tiagods/controller/ControllerMenu.java
                         try {
                             if(email.enviarEmail(arquivo, status, mensagem, conta1.trim())==true) break; //sair se conseguir enviar o alerta
                             else if(i<3){//tentará realizar 3 envios, se falhar vai encerrar programa
@@ -298,6 +344,10 @@ public class ControllerMenu{
                             atualizarTela("Falha, o processo foi interrompido");
                         }
                     }
+<<<<<<< HEAD:taskChild-App/src/br/com/tiagods/controller/ControllerMenu.java
+=======
+                    
+>>>>>>> origin/master:src/br/com/tiagods/controller/ControllerMenu.java
                     atualizarTela("Email enviado com sucesso!");
                 }
             }
